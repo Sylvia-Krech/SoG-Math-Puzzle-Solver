@@ -2,6 +2,9 @@ import pyautogui
 from itertools import permutations
 import operator
 import config_importer
+import asyncio
+import time
+
 # Grab config
 config = config_importer.grab_config("autosolver.config")
 ## hardcoded:
@@ -33,7 +36,7 @@ class operand():
     def __repr__(self):
         return self.strOperand
 
-def solve_puzzle(numbers, operands, targetValue):
+async def solve_puzzle(numbers, operands, targetValue):
     for numberPermutation in permutations(numbers):
         for operandPermutation in permutations(operands):
             if permutation_evaluation(numberPermutation, operandPermutation) == targetValue:
@@ -50,8 +53,16 @@ def permutation_evaluation(numberPermutation, operandPermutation):
     return output
 
 ## Functions to move the character around the screen
+# Consider making asyncronous/multi threaded to allow the solver to run during prepositioning movement
+async def preposition():
+    with pyautogui.hold(config["LEFT_KEY"]):
+        with pyautogui.hold(config["UP_KEY"]):
+            await asyncio.sleep(3)
+            print("hi!")
+
 def move():
     pass
+    #pyautogui.
 
 
 
@@ -72,12 +83,19 @@ def identify(screen, images, location):
             outputList.append(numeral)
     return outputList
 
-if __name__ == "__main__":
-    ints = [5,1,7,2]
-    ops = [operand("-"), operand("+"), operand("*")]
-    tar = 38
-    print(solve_puzzle(ints, ops, tar))
+
+
+async def main():
+    ints = [7,4,2,9,1]
+    ops = [operand("*"), operand("+"), operand("+"), operand("+")]
+    tar = 41
+    print("run!")
+    time.sleep(3)
+    await asyncio.gather(preposition(), solve_puzzle(ints, ops, tar))
+    print()
     ## main loop
+
+
     loopFlag = True
     while loopFlag:
         break
@@ -97,3 +115,6 @@ if __name__ == "__main__":
         ## ensure is solved
             # if it is, continue to next room
             # otherwise reset
+
+if __name__ == "__main__":
+    asyncio.run(main())
