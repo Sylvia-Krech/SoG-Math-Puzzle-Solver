@@ -36,36 +36,21 @@ class operand():
     def __repr__(self):
         return self.strOperand
 
-async def solve_puzzle(numbers, operands, targetValue):
-    for numberPermutation in permutations(numbers):
-        for operandPermutation in permutations(operands):
-            if permutation_evaluation(numberPermutation, operandPermutation) == targetValue:
-                return (numberPermutation, operandPermutation)
-    raise Exception("No solution was found")
 
-def permutation_evaluation(numberPermutation, operandPermutation):
-    if len(numberPermutation) - 1 != len(operandPermutation):
-        raise Exception("Invaild quantity of numbers and operands")
-
-    output = numberPermutation[0]
-    for i in range(len(operandPermutation)):
-        output = operandPermutation[i].compute(output, numberPermutation[i+1])
-    return output
 
 ## Functions to move the character around the screen
-# Consider making asyncronous/multi threaded to allow the solver to run during prepositioning movement
 async def preposition():
     with pyautogui.hold(config["LEFT_KEY"]):
         with pyautogui.hold(config["UP_KEY"]):
-            await asyncio.sleep(3)
-            print("hi!")
+            await asyncio.sleep(.5)
+        with pyautogui.hold(config["DOWN_KEY"]):
+            await asyncio.sleep(.25)
+        await asyncio.sleep(.4)
+        print("hi!")
 
 def move():
     pass
     #pyautogui.
-
-
-
 
 ## Functions to identify what the puzzle itself is
 def identify(screen, images, location):
@@ -83,16 +68,46 @@ def identify(screen, images, location):
             outputList.append(numeral)
     return outputList
 
+class Solver:
+    def __init__(self):
+        self.ints = []
+        self.ops = []
+        self.targetValue = None
+        self.solution = None
 
+    async def solve(self):
+        print(self.ints)
+        print(self.ops)
+        print(self.targetValue)
+        for numberPermutation in permutations(self.ints):
+            for operandPermutation in permutations(self.ops):
+                if numberPermutation == (7,4,9,2,1):
+                    print(numberPermutation, operandPermutation)
+                    print(Solver.permutation_evaluation(numberPermutation, operandPermutation))
+                if Solver.permutation_evaluation(numberPermutation, operandPermutation) == self.targetValue:
+                    self.solution = (numberPermutation, operandPermutation)
+                    return self.solution
+        raise Exception("No solution was found")
+
+    def permutation_evaluation(numberPermutation, operandPermutation):
+        if len(numberPermutation) - 1 != len(operandPermutation):
+            raise Exception("Invaild quantity of numbers and operands")
+
+        output = numberPermutation[0]
+        for i in range(len(operandPermutation)):
+            output = operandPermutation[i].compute(output, numberPermutation[i+1])
+        return output
 
 async def main():
-    ints = [7,4,2,9,1]
-    ops = [operand("*"), operand("+"), operand("+"), operand("+")]
-    tar = 41
+    sol = Solver()
+    sol.ints = [7,4,2,9,1]
+    sol.ops = [operand("*"), operand("+"), operand("+"), operand("+")]
+    sol.targetValue = 41
+    await sol.solve()
     print("run!")
     time.sleep(3)
-    await asyncio.gather(preposition(), solve_puzzle(ints, ops, tar))
-    print()
+    await asyncio.gather(preposition(), sol.solve())
+    print(sol.solution)
     ## main loop
 
 
@@ -109,7 +124,7 @@ async def main():
         target = identify(screen, targetFileLocations, config["targetLocations"])
 
         ## solve
-        solution = solve_puzzle(numbers, operators, target)
+        solution = solve(numbers, operators, target)
         ## move
 
         ## ensure is solved
